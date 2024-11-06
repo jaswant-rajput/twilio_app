@@ -1,0 +1,7 @@
+{
+  "name": "voice-calling-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
