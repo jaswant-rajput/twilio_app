@@ -1,43 +1,34 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Device } from '@twilio/voice-sdk';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
 })
 export class AppComponent {
-  device: Device | undefined;
+  phoneNumber: string = ''; // Input for the phone number
+  callStatus: string = 'Ready to call';
 
   constructor(private http: HttpClient) {}
 
-  async ngOnInit() {
-    const tokenResponse = await this.http.get<{ token: string }>('http://localhost:3000/token').toPromise();
-    if (!tokenResponse) return;
-    this.device = new Device(tokenResponse['token']);
-
-    this.device.on('incoming', (call) => {
-      // Handle incoming call
-      call.accept();
-    });
-
-    this.device.on('ready', () => console.log('Twilio Device Ready'));
-  }
-
-  async makeCall() {
-    if (!this.device) return;
-
-    const params = {
-      To: '+RECIPIENT_PHONE_NUMBER',
-    };
-
-    const call = await this.device.connect({ params });
-    call.on('disconnect', () => console.log('Call disconnected'));
-  }
-
-  hangupCall() {
-    if (this.device) {
-      this.device.disconnectAll();
+  // Send phone number to Node.js backend to make a call
+  makeCall() {
+    if (this.phoneNumber) {
+      const apiUrl = 'http://localhost:3000/call';
+      this.http
+        .post(apiUrl, { to: this.phoneNumber }) // Send the phone number in the request body
+        .subscribe(
+          (response) => {
+            this.callStatus = 'Calling...';
+            console.log('Call initiated:', response);
+          },
+          (error) => {
+            this.callStatus = 'Error initiating call';
+            console.error('Error:', error);
+          }
+        );
+    } else {
+      alert('Please enter a phone number');
     }
   }
 }

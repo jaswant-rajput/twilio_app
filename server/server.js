@@ -1,32 +1,36 @@
 const express = require('express');
 const Twilio = require('twilio');
+const cors = require('cors'); // Import the CORS middleware
 
 const app = express();
-const AccessToken = Twilio.jwt.AccessToken;
-const VoiceGrant = AccessToken.VoiceGrant;
+app.use(cors()); // Enable CORS for all origins
+app.use(express.json()); // Middleware to parse JSON request bodies
 
+const accountSid = "";
+const authToken = "";
+const client = Twilio(accountSid, authToken);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Server running');
 });
 
-app.get('/token', (req, res) => {
-  const identity = 'user' + Math.floor(Math.random() * 1000);
-  const token = new AccessToken(twilioAccountSid, twilioApiKey, twilioApiSecret);
+app.post('/call', (req, res) => {
+  const { to } = req.body; // Get the phone number from the request body
 
-  token.identity = identity;
-
-  const voiceGrant = new VoiceGrant({
-    outgoingApplicationSid: outgoingApplicationSid,
-    incomingAllow: true,
-  });
-
-  token.addGrant(voiceGrant);
-
-  res.send({
-    token: token.toJwt(),
-    identity: identity,
-  });
+  client.calls
+    .create({
+      url: 'http://demo.twilio.com/docs/voice.xml', // URL for Twilio's XML file
+      to: to,
+      from: '+17203864818', // Your Twilio number
+    })
+    .then((call) => {
+      console.log('Call initiated:', call.sid);
+      res.json({ message: 'Call initiated', callSid: call.sid });
+    })
+    .catch((error) => {
+      console.error('Error initiating call:', error);
+      res.status(500).json({ error: 'Failed to initiate call' });
+    });
 });
 
-app.listen(3000, () => console.log('Token server running on port 3000'));
+app.listen(3000, () => console.log('Server running on http://localhost:3000'));
