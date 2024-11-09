@@ -14,7 +14,7 @@ export class AppComponent {
   // Send phone number to Node.js backend to make a call
   makeCall() {
     if (this.phoneNumber) {
-      const apiUrl = 'http://localhost:3000/call';
+      const apiUrl = 'https://server-steel-nine-73.vercel.app/call';
       this.http
         .post(apiUrl, { to: this.phoneNumber }) // Send the phone number in the request body
         .subscribe(
